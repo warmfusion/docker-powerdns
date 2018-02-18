@@ -7,7 +7,19 @@ set -e
 [ "${1:0:2}" != "--" ] && exec "$@"
 
 if $MYSQL_AUTOCONF ; then
-  # Set MySQL Credentials in pdns.conf
+  # Ensure sensible defaults are defined for required properties
+  MYSQL_HOST=${MYSQL_HOST:-mysql}
+  MYSQL_POST=${MYSQL_PORT:-3306}
+  MYSQL_USER=${MYSQL_USER:-root}
+  MYSQL_DB=${MYSQL_DB:-powerdns}
+  if [ -z "$MYSQL_PASS" ]; then
+    echo "ERROR: MYSQL_PASS has not been defined. Ensure this variable is set with an environment property to allow this service to connect to the database."
+    exit 1
+  fi
+  
+  echo "Configuring PowerDNS for MySQL binding - $MYSQL_USER:*****@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DB}..."
+  
+  # Set MySQL Credentials in pdns.conf  
   sed -r -i "s/^[# ]*gmysql-host=.*/gmysql-host=${MYSQL_HOST}/g" /etc/pdns/pdns.conf
   sed -r -i "s/^[# ]*gmysql-port=.*/gmysql-port=${MYSQL_PORT}/g" /etc/pdns/pdns.conf
   sed -r -i "s/^[# ]*gmysql-user=.*/gmysql-user=${MYSQL_USER}/g" /etc/pdns/pdns.conf
